@@ -2,9 +2,9 @@ name: Build and Scan Docker Images
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
 
 jobs:
   build-and-scan:
@@ -19,17 +19,24 @@ jobs:
 
     - name: Build backend Docker image
       run: docker build -t backend-image:latest ./backend
-      
+
     - name: Build frontend Docker image
       run: docker build -t frontend-image:latest ./frontend
 
-    - name: Install Trivy
+    - name: Scan backend Docker image with Trivy
       uses: aquasecurity/trivy-action@master
+      continue-on-error: true
+      with:
+        image-ref: backend-image:latest
+        format: table
+        exit-code: 0
+        severity: CRITICAL,HIGH
 
-    - name: Scan backend image with Trivy
+    - name: Scan frontend Docker image with Trivy
+      uses: aquasecurity/trivy-action@master
       continue-on-error: true
-      run: trivy image backend-image:latest
-      
-    - name: Scan frontend image with Trivy
-      continue-on-error: true
-      run: trivy image frontend-image:latest
+      with:
+        image-ref: frontend-image:latest
+        format: table
+        exit-code: 0
+        severity: CRITICAL,HIGH
