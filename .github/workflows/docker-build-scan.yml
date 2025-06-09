@@ -6,37 +6,79 @@ on:
   pull_request:
     branches: [master]
 
+env:
+  AWS_REGION: eu-north-1
+  FRONTEND_ECR_REPOSITORY: docker-frontend-db
+  BACKEND_ECR_REPOSITORY: docker-backend-db
+
 jobs:
-  build-and-scan:
+  build-scan-and-push:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Build backend Docker image
-      run: docker build -t backend-image:latest ./backend
+      # --- Build Docker Images ---
+      - name: Build backend Docker image
+        run: docker build -t backend-image:latest ./backend
 
-    - name: Build frontend Docker image
-      run: docker build -t frontend-image:latest ./frontend
+      - name: Build frontend Docker image
+        run: docker build -t frontend-image:latest ./frontend
 
-    - name: Scan backend Docker image with Trivy
-      uses: aquasecurity/trivy-action@master
-      continue-on-error: true
-      with:
-        image-ref: backend-image:latest
-        format: table
-        exit-code: 0
-        severity: CRITICAL,HIGH
+      # --- Scan Docker Images ---
+      - name: Scan backend Docker image with Trivy
+        uses: aquasecurity/trivy-action@master
+        continue-on-error: true
+        with:
+          image-ref: backend-image:latest
+          format: table
+          exit-code: 0
+          severity: CRITICAL,HIGH
 
-    - name: Scan frontend Docker image with Trivy
-      uses: aquasecurity/trivy-action@master
-      continue-on-error: true
-      with:
-        image-ref: frontend-image:latest
-        format: table
-        exit-code: 0
-        severity: CRITICAL,HIGH
+      - name: Scan frontend Docker image with Trivy
+        uses: aquasecurity/trivy-action@master
+        continue-on-error: true
+        with:
+          image-ref: frontend-image:latest
+          format: table
+          exit-code: 0
+          severity: CRITICAL,HIGH
+
+      # --- Configure AWS Credentials ---
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # --- Login to Amazon ECR ---
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # --- Tag and Push Backend Image ---
+      - name: Tag and push backend image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker tag backend-image:latest $ECR_REGISTRY/$BACKEND_ECR_REPOSITORY:$IMAGE_TAG
+          docker tag backend-image:latest $ECR_REGISTRY/$BACKEND_ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$BACKEND_ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$BACKEND_ECR_REPOSITORY:latest
+
+      # --- Tag and Push Frontend Image ---
+      - name: Tag and push frontend image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker tag frontend-image:latest $ECR_REGISTRY/$FRONTEND_ECR_REPOSITORY:$IMAGE_TAG
+          docker tag frontend-image:latest $ECR_REGISTRY/$FRONTEND_ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$FRONTEND_ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$FRONTEND_ECR_REPOSITORY:latest
