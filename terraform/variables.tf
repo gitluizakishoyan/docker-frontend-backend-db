@@ -4,12 +4,8 @@ variable "aws_region" {
 
 provider "aws" {
   region     = var.aws_region
-  access_key = var.aws_access_key     # Add this
-  secret_key = var.aws_secret_key     # Add this
 }
 
-variable "key_name" {}
-variable "private_key_path" {}
-
-variable "aws_access_key" {}
-variable "aws_secret_key" {}
+variable "key_name" {
+  default = "my-ec2-keypair"
+}
