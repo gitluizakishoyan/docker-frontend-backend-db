@@ -9,7 +9,7 @@ ENV PATH /app/node_modules/.bin:$PATH
 COPY package*.json ./
 
 # Optional: fix for npm peer dependency warnings
-RUN npm install
+RUN npm install react-scripts -g
 
 # Then copy the rest of the app
 COPY . .
