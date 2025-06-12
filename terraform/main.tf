@@ -1,10 +1,22 @@
 terraform {
   backend "s3" {
     bucket = "myappbackfrontbucket1"
-    key = "terraform.tfstate"
+    key    = "terraform.tfstate"
     region = "eu-north-1"
   }
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
 }
+
+provider "aws" {
+  region = "eu-north-1"
+}
+
 # Get the latest Ubuntu 22.04 LTS AMI
 data "aws_ami" "ubuntu" {
   most_recent = true
@@ -60,13 +72,12 @@ resource "aws_security_group" "ssh_http_access" {
   }
 }
 
-
-# Create EC2 instance
+# EC2 instance
 resource "aws_instance" "web" {
   ami                    = data.aws_ami.ubuntu.id
-  instance_type          = "t3.micro" # t3.micro is compatible with eu-north-1
+  instance_type          = "t3.micro"
   key_name               = var.key_name
-  vpc_security_group_ids = [aws_security_group.ssh_access.id]
+  vpc_security_group_ids = [aws_security_group.ssh_http_access.id]
 
   tags = {
     Name = "AppServer"
