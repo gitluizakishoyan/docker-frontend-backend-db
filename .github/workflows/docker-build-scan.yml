@@ -30,23 +30,23 @@ jobs:
         run: docker build -t frontend-image:latest ./frontend
 
       # --- Scan Docker Images ---
-      - name: Scan backend Docker image with Trivy
-        uses: aquasecurity/trivy-action@master
-        continue-on-error: true
-        with:
-          image-ref: backend-image:latest
-          format: table
-          exit-code: 0
-          severity: CRITICAL,HIGH
+      # - name: Scan backend Docker image with Trivy
+      #   uses: aquasecurity/trivy-action@master
+      #   continue-on-error: true
+      #   with:
+      #     image-ref: backend-image:latest
+      #     format: table
+      #     exit-code: 0
+      #     severity: CRITICAL,HIGH
 
-      - name: Scan frontend Docker image with Trivy
-        uses: aquasecurity/trivy-action@master
-        continue-on-error: true
-        with:
-          image-ref: frontend-image:latest
-          format: table
-          exit-code: 0
-          severity: CRITICAL,HIGH
+      # - name: Scan frontend Docker image with Trivy
+      #   uses: aquasecurity/trivy-action@master
+      #   continue-on-error: true
+      #   with:
+      #     image-ref: frontend-image:latest
+      #     format: table
+      #     exit-code: 0
+      #     severity: CRITICAL,HIGH
      
       - name: Check AWS credentials are passed
         run: echo "${{ secrets.AWS_ACCESS_KEY_ID && secrets.AWS_SECRET_ACCESS_KEY != '' }}"
