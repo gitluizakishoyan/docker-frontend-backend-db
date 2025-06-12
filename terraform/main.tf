@@ -64,15 +64,4 @@ resource "aws_instance" "web" {
   tags = {
     Name = "AppServer"
   }
-
-  provisioner "local-exec" {
-    command = "echo ${self.public_ip} > ../ansible/hosts.txt"
-  }
-
-  connection {
-    type        = "ssh"
-    user        = "ubuntu"
-    private_key = file(var.private_key_path)
-    host        = self.public_ip
-  }
 }
