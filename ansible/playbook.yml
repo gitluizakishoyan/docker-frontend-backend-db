@@ -1,0 +1,43 @@
+
+- name: Deploy Docker Compose App to EC2
+  hosts: web
+  become: yes
+
+  vars:
+    aws_region: eu-north-1
+    ecr_repo_url: 315761229905.dkr.ecr.eu-north-1.amazonaws.com
+
+  tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - docker.io
+          - docker-compose
+          - awscli
+        update_cache: yes
+        state: present
+
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Copy docker-compose.yml
+      copy:
+        src: ../docker-compose.yml
+        dest: /home/ubuntu/docker-compose.yml
+        owner: ubuntu
+        group: ubuntu
+        mode: 0644
+
+    - name: Login to ECR
+      become_user: ubuntu
+      shell: |
+        aws ecr get-login-password --region {{ aws_region }} | docker login --username AWS --password-stdin {{ ecr_repo_url }}
+      environment:
+        AWS_REGION: "{{ aws_region }}"
+
+    - name: Deploy app with docker-compose
+      become_user: ubuntu
+      shell: docker-compose -f /home/ubuntu/docker-compose.yml up -d
