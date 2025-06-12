@@ -1,35 +1,36 @@
 version: "3.8"
+
 services:
-  web:
-    build: ./frontend
-    depends_on:
-      - api
+  frontend:
+    image: 315761229905.dkr.ecr.eu-north-1.amazonaws.com/docker-frontend-db
     ports:
-      - "3000:3000"
+      - "80:3000"
+    depends_on:
+      - backend
     networks:
       - network-backend
-  api:
-    build: ./backend
+
+  backend:
+    image: 315761229905.dkr.ecr.eu-north-1.amazonaws.com/docker-backend-db
+    ports:
+      - "5000:5000"
     depends_on:
       - mongo
-    ports:
-      - "3001:3001"
-    networks: 
-     - network-backend
-  
+    environment:
+      - MONGO_URL=mongodb://username:password@mongo:27017
+    networks:
+      - network-backend
+
   mongo:
     image: mongo
     restart: always
     volumes: 
       - mongodb_data:/data/db
     environment: 
-      MONGODB_INITDB_ROOT_USERNAME: username
-      MONGODB_INITDB_ROOT_PASSWORD: password
-    # uncomment following lines to access db locally
-    # ports:
-    #   - 27017:27017
+      MONGO_INITDB_ROOT_USERNAME: username
+      MONGO_INITDB_ROOT_PASSWORD: password
     networks: 
-     - network-backend
+      - network-backend
 
 networks:
   network-backend:
