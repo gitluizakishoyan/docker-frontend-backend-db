@@ -1,15 +1,17 @@
-FROM node:14-alpine
+FROM node:18-alpine
 
 WORKDIR /app
 
-# add '/app/node_modules/.bin' to $PATH
+# Set PATH and install dependencies first
 ENV PATH /app/node_modules/.bin:$PATH
-# install application dependencies
-COPY package*.json ./
-RUN npm install
-# RUN npm install react-scripts -g
 
-# copy app files
+# Copy only dependency definitions first (for better caching)
+COPY package*.json ./
+
+# Optional: fix for npm peer dependency warnings
+RUN npm install --legacy-peer-deps
+
+# Then copy the rest of the app
 COPY . .
 
 EXPOSE 3000
