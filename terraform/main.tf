@@ -26,13 +26,14 @@ data "aws_vpc" "default" {
   default = true
 }
 
-# Allow SSH access from anywhere
-resource "aws_security_group" "ssh_access" {
-  name        = "allow_ssh"
-  description = "Allow SSH inbound traffic"
+# Security group to allow SSH and HTTP access
+resource "aws_security_group" "ssh_http_access" {
+  name        = "allow_ssh_http"
+  description = "Allow SSH (22) and HTTP (80) inbound traffic"
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
+    description = "SSH access"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -40,6 +41,7 @@ resource "aws_security_group" "ssh_access" {
   }
 
   ingress {
+    description = "HTTP access"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -52,7 +54,12 @@ resource "aws_security_group" "ssh_access" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = {
+    Name = "allow_ssh_http"
+  }
 }
+
 
 # Create EC2 instance
 resource "aws_instance" "web" {
