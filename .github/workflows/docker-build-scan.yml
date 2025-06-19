@@ -127,6 +127,8 @@ jobs:
 
       # --- Run Ansible Playbook ---
       - name: Run Ansible Playbook
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
         working-directory: ./ansible
         run: |
           ansible-playbook -i inventory.ini playbook.yml
