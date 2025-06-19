@@ -22,7 +22,14 @@
         name: ubuntu
         groups: docker
         append: yes
-
+    
+    - name: Login to ECR
+      become_user: ubuntu
+      shell: |
+        aws ecr get-login-password --region {{ aws_region }} | docker login --username AWS --password-stdin {{ ecr_repo_url }}
+      environment:
+        AWS_REGION: "{{ aws_region }}"
+        
     - name: Copy docker-compose.yml
       copy:
         src: ../docker-compose.yml
