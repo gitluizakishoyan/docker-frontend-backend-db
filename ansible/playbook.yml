@@ -30,14 +30,7 @@
         owner: ubuntu
         group: ubuntu
         mode: 0644
-
-    - name: Login to ECR
-      become_user: ubuntu
-      shell: |
-        aws ecr get-login-password --region {{ aws_region }} | docker login --username AWS --password-stdin {{ ecr_repo_url }}
-      environment:
-        AWS_REGION: "{{ aws_region }}"
-
+   
     - name: Deploy app with docker-compose
       become_user: ubuntu
       shell: docker-compose -f /home/ubuntu/docker-compose.yml up -d
