@@ -1,7 +1,3 @@
-Luiza
-Add Status
-
-Luiza — 8:11 PM
 name: Deploy Docker Compose App to EC2
 hosts: all
 become: yes
